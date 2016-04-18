@@ -1,5 +1,5 @@
 # Thought Process
-Please note there are two branches in this repository: master and alternate
+Please note there are two branches in this repository: master and alternate.
 When I first saw this assignment, I thought a Docker wrapper might fit the 
 requirements. After re-reading, I assumed this would be too easy to justify 
 this project :).  
@@ -19,3 +19,8 @@ The 'alternate' branch is a POSIX-compliant shell script that utilizes
 * chroot
 * ulimit
 * ip net-ns
+
+# Main Branch
+## Compiling
+Probably requires go 1.6, since that is what it was written in  
+go get && go build
