@@ -23,4 +23,4 @@ The 'alternate' branch is a POSIX-compliant shell script that utilizes
 # Main Branch
 ## Compiling
 Probably requires go 1.6, since that is what it was written in  
-go get && go build
+>go get && go build
