@@ -22,22 +22,6 @@ type Config struct {
 	Debug    bool `short:"d" long:"debug" description:"Dump all debug information"`
 }
 
-func parseArgs(c *Config) {
-	/*
-		c.Name = flag.String("name", "default", "The name of the container")
-		c.Command = flag.Arg(0)
-		flag.Parse()
-		g := flag.Arg(0)
-		fmt.Printf("%v\n", g)
-	*/
-}
-
-/*
-func init() {
-
-}
-*/
-
 func error_exit(exit_code int, err error) {
 	fmt.Printf("Error: %v\n", err)
 	os.Exit(exit_code)
