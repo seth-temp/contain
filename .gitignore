@@ -1,4 +1,5 @@
 main
 seth-temporary
 lc
+contain
 *.sw?
