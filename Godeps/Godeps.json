@@ -3,6 +3,10 @@
 	"GoVersion": "go1.6",
 	"Deps": [
 		{
+			"ImportPath": "github.com/Pallinder/go-randomdata",
+			"Rev": "4134a721d6473f81816b1799866bf3e553a9b8d4"
+		},
+		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
 			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
 		},
