@@ -9,10 +9,10 @@ assignment said
 "The contained program’s view of the file system should be limited to a
  specified directory"  
 
-
 The main branch of this repo was written under the assumption that we were 
-only looking for filesystem isolation. Therefore, I thought simply using 
-LXC would be adequate.  
+only looking for filesystem isolation and not a chroot-anywhere feature. 
+Therefore, I thought simply using LXC would be adequate. If LXC is fed a 
+template, it acquires a filesystem of the distro specified.
 
 
 The 'alternate' branch is a POSIX-compliant shell script that utilizes
