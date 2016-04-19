@@ -3,12 +3,12 @@ When I first saw this assignment, I thought a Docker wrapper might fit the
 requirements. After re-reading, I assumed this would be too easy to justify 
 this project.  
 
-The project satisfies the following requirements
+The project does satisfy these following requirements:
 * chroot - By setting -p /path/to/lxc
 * exit code / signal forwarding - from lxc-init
 * memory limit - By setting -m <bytes> !! UNTESTED
 
-The project does not satisfy the following requirements due to deadline constraint
+The project does not satisfy these following requirements due to deadline constraint
 * Network Access - the container is given an IP address, but it is not assignable
 * CPU affinity - I'm not even sure lxc-go can set this, would probably need
 to wrap command with taskset(1)
