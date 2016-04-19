@@ -16,11 +16,10 @@ to wrap command with taskset(1)
 
 ## Approach
 Since Docker is the most common container engine (other than rkt?), it was apparent 
-to me that using it would be "cheating". Instead I thought I should use the underlying
-kernel features and libraries that used to power Docker itself: namely
-
+to me that using it would be "cheating". Instead I thought I should use the libraries
+tools and APIs that powered Docker itself (before libcontainer) -- namely
 * LXC, which encompasses
-    * cgroups
+    * cgroups (resource limits and allocation)
     * namespaces (memory / network isolation)
     * chroot
 
