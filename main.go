@@ -112,21 +112,24 @@ func attach(c *lxc.Container, o *lxc.AttachOptions) {
 	}
 }
 
-// parseArgs operates on a reference to Config, setting the struct with
+// parseArgs operates on a reference to Config
 func parseArgs(conf *Config) {
-	/*
-	   Input validation. Don't silently fail. Print the usage instead.
-	   We can assign _ to "unparsed" later, but Args nested struct in Config
-	   slurps the rest of the arguments into command.
-	*/
-
 	var parser = flags.NewParser(conf, flags.Default)
 
-	// handle
+	/*
+	   Input validation. Don't silently fail. Print the usage instead.
+	   We might do something with "unparsed" later, but the Args nested
+	   struct in Config slurps the rest of the arguments into command.
+
+	   There seems to be a bug where --help prints twice... I tried to
+	   mitigate it by overriding with my own --help. I think it's caused
+	   by the fact that I have required args? Not worth investing any more
+	   time
+	*/
+
 	unparsed, err := parser.Parse()
 	if err != nil || len(unparsed) > 1 || conf.Help {
 		printHelp(parser)
-		//errorExit(2, err)
 	}
 }
 
