@@ -5,7 +5,13 @@ this project.
 
 The project satisfies the following requirements
 * chroot - By setting -p /path/to/lxc
-* memory limit - By setting -m
+* exit code matching - from LXC
+* memory limit - By setting -m <bytes> !! UNTESTED
+
+The project does not satisfy the following requirements due to deadline constraint
+* Network Access - the container is given an IP address, but it is not assignable
+* CPU affinity - I'm not even sure lxc-go can set this, would probably need
+to wrap command with taskset(1)
 
 I did not expect there to be library issues, but I discovered 
 [bug #58](https://github.com/lxc/go-lxc/issues/58) in the go-lxc bindings.
@@ -21,19 +27,32 @@ suppressed if the command exited nonzero
 
 A much easier solution to this project would have been a POSIX script that uses
 * chroot
+* taskset
 * ulimit
 * ip net-ns
 
-# Main Branch
+# Application
 ## Compiling
 Probably requires go 1.6, since that is what it was written in, although 
 with go's compat promise, you could build with 1.5 and GO15VENDOREXPERIMENT=1  
 ```sh
 go get && go build -o contain
-``
-## Usage
 ```
-./contain [command]
+
+## Usage
+The package lxc needs to be installed since the library 
+[shells out to lxc-execute](https://github.com/lxc/go-lxc/blob/v2/container.go#L461-L473) 
+as a fallback due to a bug.
+```
+sudo ./contain <flags> [command]
+IE
+sudo ./contain --name foo --lxcpath /opt -- ls /bin
+sudo ./contain -- du /
 ```
 
 Use --help to print usage.
+
+## Caveats
+* If a container name (--name) is not specified, a brand new container is 
+provisioned (with a random name)
+* My machine generates initutils mount_fs warnings from the liblxc library
