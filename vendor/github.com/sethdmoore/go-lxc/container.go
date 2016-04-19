@@ -454,6 +454,8 @@ func (c *Container) Start() error {
 
 // Execute executes the given command in a temporary container.
 func (c *Container) Execute(args ...string) ([]byte, error) {
+	var output []byte
+	var err error
 	cargs := []string{"lxc-execute", "-n", c.Name(), "-P", c.ConfigPath(), "--"}
 	cargs = append(cargs, args...)
 
@@ -462,9 +464,14 @@ func (c *Container) Execute(args ...string) ([]byte, error) {
 
 	// FIXME: Go runtime and src/lxc/start.c signal_handler are not playing nice together so use lxc-execute for now
 	// go-nuts thread: https://groups.google.com/forum/#!msg/golang-nuts/h9GbvfYv83w/5Ly_jvOr86wJ
-	output, err := exec.Command(cargs[0], cargs[1:]...).CombinedOutput()
+	output, err = exec.Command(cargs[0], cargs[1:]...).CombinedOutput()
 	if err != nil {
-		return nil, ErrExecuteFailed
+		// Do not suppress stderr if the exit code != 0. Return with err.
+		if len(output) > 1 {
+			return output, ErrExecuteFailed
+		} else {
+			return nil, ErrExecuteFailed
+		}
 	}
 
 	return output, nil

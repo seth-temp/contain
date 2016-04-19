@@ -6,6 +6,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jessevdk/go-flags"
 	"github.com/sethdmoore/go-lxc"
+	"strings"
 	//"gopkg.in/lxc/go-lxc.v2"  // bugged library, until #59 is merged. Use our fork
 	"os"
 )
@@ -22,30 +23,16 @@ type Config struct {
 	LXCPath string `short:"p" long:"lxcpath" description:"Specify container path"`
 	// Alpine is all the container OS rage these days
 	Template string `short:"t" long:"template" default:"/usr/share/lxc/templates/lxc-alpine"`
-
-	/*
-		We probably don't need all this
-		Distro     string `short:"d" long:"distro" default:"alpine" description:"Distro for the template"`
-		Release    string `short:"r" long:"release" default:"v3.3" description:"Release for the template"`
-		Arch       string `short:"a" long:"arch" default:"amd64" description:"Arch for the template"`
-		FlushCache bool `short:"C" long:"flush-cache" description:"Flush LXC cache for image"`
-		Validation bool `short:"V" long:"validation" description:"GPG Validation"`
-	*/
-	Interactive bool `short:"I" long:"interactive" description:"Attach TTY"`
-	Debug       bool `short:"D" long:"debug" description:"Dump all debug information"`
-	Help        bool `short:"h" long:"help" description:"Show this help message"`
+	// Currently broken, not in scope to fix IMO
+	Interactive bool    `short:"I" long:"interactive" description:"Attach TTY"`
+	MemoryLimit float64 `short:"m" long:"memory-limit" default:"0" description:"Memory limit, in bytes"`
+	Debug       bool    `short:"D" long:"debug" description:"Dump all debug information"`
+	Help        bool    `short:"h" long:"help" description:"Show this help message"`
 }
 
 func errorExit(exit_code int, err error) {
 	fmt.Printf("Error: %v\n", err)
 	os.Exit(exit_code)
-}
-
-func attach(c *lxc.Container, o *lxc.AttachOptions) {
-	err := c.AttachShell(*o)
-	if err != nil {
-		errorExit(2, err)
-	}
 }
 
 func create(conf *Config) *lxc.Container {
@@ -62,6 +49,7 @@ func create(conf *Config) *lxc.Container {
 
 	}
 
+	// If we did not find a container, create a struct for one
 	if c == nil {
 		c, err = lxc.NewContainer(conf.Name, conf.LXCPath)
 		if err != nil {
@@ -75,24 +63,48 @@ func create(conf *Config) *lxc.Container {
 		options := lxc.TemplateOptions{
 			Template: conf.Template,
 		}
+		// provision the container
 		if err = c.Create(options); err != nil {
 			fmt.Printf("Could not create container \"%s\"\n", conf.Name)
 			errorExit(2, err)
 		}
 	}
 
+	// Not sure if anything gets written to these, but they are created
 	c.SetLogFile("/tmp/" + conf.Name + ".log")
 	c.SetLogLevel(lxc.TRACE)
 
 	return c
 }
 
+// exec executes a command in the context of the container
 func exec(c *lxc.Container, conf *Config) {
-	//c.LoadConfigFile(lxc.DefaultConfigPath())
-	if output, err := c.Execute(conf.Args.Command...); err != nil {
+	var output []byte
+	var err error
+	// stdout and stderr are unfornutately concatenated
+	if output, err = c.Execute(conf.Args.Command...); err != nil {
+		if len(output) != 0 {
+			fmt.Printf("%s\n", output)
+		}
 		errorExit(2, err)
 	} else {
 		fmt.Printf("%s", output)
+	}
+}
+
+func run(c *lxc.Container, conf *Config) {
+	cmd := strings.Join(conf.Args.Command, " ")
+	fmt.Printf("Starting container \"%s\"...\n", conf.Name)
+	if err := c.Start(); err != nil {
+		fmt.Printf("Failed to run container with command \"%s\"\n", cmd)
+		errorExit(2, err)
+	}
+}
+
+func attach(c *lxc.Container, o *lxc.AttachOptions) {
+	err := c.AttachShell(*o)
+	if err != nil {
+		errorExit(2, err)
 	}
 }
 
@@ -159,11 +171,17 @@ func main() {
 		spew.Dump(conf)
 	}
 
+	if conf.MemoryLimit > 0 {
+		var b lxc.ByteSize
+		b = lxc.ByteSize(conf.MemoryLimit)
+		c.SetMemoryLimit(b)
+	}
+
 	if conf.Interactive {
+		run(c, &conf)
 		attach(c, &options)
 
 	} else {
-
 		exec(c, &conf)
 	}
 }
