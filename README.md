@@ -3,6 +3,7 @@ When I first saw this assignment, I thought a Docker wrapper might fit the
 requirements. After re-reading, I assumed this would be too easy to justify 
 this project.  
 
+## Summary
 The project does satisfy these following requirements:
 * chroot - By setting -p /path/to/lxc
 * exit code / signal forwarding - from lxc-init
@@ -13,6 +14,17 @@ The project does not satisfy these following requirements due to deadline constr
 * CPU affinity - I'm not even sure lxc-go can set this, would probably need
 to wrap command with taskset(1)
 
+## Approach
+Since Docker is the most common container engine (other than rkt?), it was apparent 
+to me that using it would be "cheating". Instead I thought I should use the underlying
+kernel features and libraries that used to power Docker itself: namely
+
+* LXC, which encompasses
+    * cgroups
+    * namespaces (memory / network isolation)
+    * chroot
+
+## Issues
 I did not expect there to be library issues, but I discovered 
 [issue #58](https://github.com/lxc/go-lxc/issues/58) in the go-lxc bindings.
 It took me some time to question the library, as I incorrectly assumed 
@@ -69,3 +81,7 @@ shell script that utilizes:
 * ulimit
 * ip net-ns
 
+Another solution to this could have been using Docker, Inc's 
+[libcontainer](https://github.com/opencontainers/runc/tree/master/libcontainer).
+Since I have not used that library directly, I cannot comment on how easy it is 
+to implement, but I imagine it might have been easier to tame than go-lxc.
