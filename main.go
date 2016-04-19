@@ -5,9 +5,9 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jessevdk/go-flags"
-	"gopkg.in/lxc/go-lxc.v2"
+	"github.com/sethdmoore/go-lxc"
+	//"gopkg.in/lxc/go-lxc.v2"  // bugged library, until #59 is merged. Use our fork
 	"os"
-	//"strings"
 )
 
 // Config
@@ -49,39 +49,46 @@ func attach(c *lxc.Container, o *lxc.AttachOptions) {
 }
 
 func create(conf *Config) *lxc.Container {
-	c, err := lxc.NewContainer(conf.Name, conf.LXCPath)
-	if err != nil {
-		fmt.Printf("FOOOOO")
-		errorExit(2, err)
+	var c *lxc.Container
+	var err error
+
+	// ensure we're not attempting to recreate the same container
+	activeContainers := lxc.DefinedContainers(conf.LXCPath)
+	for idx := range activeContainers {
+		if activeContainers[idx].Name() == conf.Name {
+			fmt.Printf("Found existing container \"%s\"\n", conf.Name)
+			c = &activeContainers[idx]
+		}
+
 	}
-	c.SetLogFile("/tmp" + conf.Name + ".log")
+
+	if c == nil {
+		c, err = lxc.NewContainer(conf.Name, conf.LXCPath)
+		if err != nil {
+			errorExit(2, err)
+		}
+	}
+
+	// double check on whether the container is defined
+	if !(c.Defined()) {
+		fmt.Printf("Creating new container: %s\n", conf.Name)
+		options := lxc.TemplateOptions{
+			Template: conf.Template,
+		}
+		if err = c.Create(options); err != nil {
+			fmt.Printf("Could not create container \"%s\"\n", conf.Name)
+			errorExit(2, err)
+		}
+	}
+
+	c.SetLogFile("/tmp/" + conf.Name + ".log")
 	c.SetLogLevel(lxc.TRACE)
-	options := lxc.TemplateOptions{
-		Template: conf.Template,
-	}
-	//if !(c.Defined()) {
-	if err := c.Create(options); err != nil {
-		fmt.Printf("Could not create container \"%s\"\n", conf.Name)
-		errorExit(2, err)
-	}
-	//	}
+
 	return c
 }
 
-/*
-// Whoops, might have been a little confused with the verbage
-// run !+ execute
-func run(c *lxc.Container, conf *Config) {
-	cmd := strings.Join(conf.Args.Command, " ")
-	fmt.Printf("Starting container \"%s\"...\n", conf.Name)
-	if err := c.Start(); err != nil {
-		fmt.Printf("Failed to run container with command \"%s\"\n", cmd)
-		errorExit(2, err)
-	}
-}
-*/
-
 func exec(c *lxc.Container, conf *Config) {
+	//c.LoadConfigFile(lxc.DefaultConfigPath())
 	if output, err := c.Execute(conf.Args.Command...); err != nil {
 		errorExit(2, err)
 	} else {
@@ -89,11 +96,31 @@ func exec(c *lxc.Container, conf *Config) {
 	}
 }
 
+// parseArgs operates on a reference to Config, setting the struct with
+func parseArgs(conf *Config) {
+	/*
+	   Input validation. Don't silently fail. Print the usage instead.
+	   We can assign _ to "unparsed" later, but Args nested struct in Config
+	   slurps the rest of the arguments into command.
+	*/
+
+	var parser = flags.NewParser(conf, flags.Default)
+
+	// handle
+	unparsed, err := parser.Parse()
+	if err != nil || len(unparsed) > 1 || conf.Help {
+		printHelp(parser)
+		//errorExit(2, err)
+	}
+}
+
 func validateConfig(conf *Config) {
+	// Hopefully lxc package derives this correctly
 	if conf.LXCPath == "" {
 		conf.LXCPath = lxc.DefaultConfigPath()
 	}
 
+	// Generate "Docker-style" container names if it is not provided
 	if conf.Name == "" {
 		conf.Name = randomdata.SillyName()
 	}
@@ -116,18 +143,7 @@ func printHelp(parser *flags.Parser) {
 func main() {
 	var conf Config
 
-	/*
-	   Input validation. Don't silently fail. Print the usage instead.
-	   We can assign _ to "unparsed" later, but Args nested struct in Config
-	   slurps the rest of the arguments into command.
-	*/
-
-	var parser = flags.NewParser(&conf, flags.Default)
-	unparsed, err := parser.Parse()
-	if err != nil || len(unparsed) > 1 || conf.Help {
-		printHelp(parser)
-		//errorExit(2, err)
-	}
+	parseArgs(&conf)
 
 	validateConfig(&conf)
 
@@ -143,11 +159,11 @@ func main() {
 		spew.Dump(conf)
 	}
 
-	//run(c, &conf)
-	exec(c, &conf)
-
 	if conf.Interactive {
 		attach(c, &options)
 
+	} else {
+
+		exec(c, &conf)
 	}
 }

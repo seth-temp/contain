@@ -3,10 +3,6 @@
 	"GoVersion": "go1.6",
 	"Deps": [
 		{
-			"ImportPath": "github.com/Pallinder/go-randomdata",
-			"Rev": "4134a721d6473f81816b1799866bf3e553a9b8d4"
-		},
-		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
 			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
 		},
@@ -16,8 +12,8 @@
 			"Rev": "6b9493b3cb60367edd942144879646604089e3f7"
 		},
 		{
-			"ImportPath": "gopkg.in/lxc/go-lxc.v2",
-			"Rev": "85d46fc661f9628f265f3f4df15427d15c272e8a"
+			"ImportPath": "github.com/sethdmoore/go-lxc",
+			"Rev": "34ba2151a7da671ab29fbb748e564dd0ff205c11"
 		}
 	]
 }
