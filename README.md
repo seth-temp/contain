@@ -22,29 +22,25 @@ After conversing with the developers in #lxc-dev on irc.freenode.net, I filed
 line fix, given the headache it caused me.
 
 Also submitted a pull request for Execute method where stderr was being 
-suppressed if the command exited nonzero 
+suppressed if the command exited nonzero.  
 [pull request #61](https://github.com/lxc/go-lxc/pull/61)
-
-## Retrospective
-Hindsight is 20/20, so they say.i A much easier solution to this project 
-would have been a POSIX script that utilizes:
-* chroot
-* taskset
-* ulimit
-* ip net-ns
 
 # Application
 ## Compiling
 Probably requires go 1.6, since that is what it was written in, although 
 with go's compat promise, you could build with 1.5 and GO15VENDOREXPERIMENT=1  
+
+Compiling may or may not require the lxc-dev (or equivalent) package 
 ```sh
 go get && go build -o contain
 ```
 
-## Usage
+## Requirements
 The package lxc needs to be installed since the library 
 [shells out to lxc-execute](https://github.com/lxc/go-lxc/blob/v2/container.go#L461-L473) 
 as a fallback due to a bug.
+
+## Usage
 ```
 sudo ./contain <flags> [command]
 IE
@@ -58,3 +54,13 @@ Use --help to print usage.
 * If a container name (--name) is not specified, a brand new container is 
 provisioned (with a random name)
 * My machine generates initutils mount_fs warnings from the liblxc library
+
+# Retrospective
+Hindsight is 20/20, so they say. A much easier, deadline-meeting and 
+feature complete solution to this project would have been a POSIX compliant
+shell script that utilizes:
+* chroot
+* taskset
+* ulimit
+* ip net-ns
+
