@@ -63,6 +63,9 @@ sudo ./contain <flags> [command]
 IE
 sudo ./contain --name foo --lxcpath /opt -- ls /bin
 sudo ./contain -- du /
+
+# interactive shell, not unlike $ docker run -it foo/bar /bin/bash
+sudo ./contain --name foo --interactive /
 ```
 
 Use --help to print usage.
