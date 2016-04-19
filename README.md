@@ -25,7 +25,9 @@ Also submitted a pull request for Execute method where stderr was being
 suppressed if the command exited nonzero 
 [pull request #61](https://github.com/lxc/go-lxc/pull/61)
 
-A much easier solution to this project would have been a POSIX script that uses
+## Retrospective
+Hindsight is 20/20, so they say.i A much easier solution to this project 
+would have been a POSIX script that utilizes:
 * chroot
 * taskset
 * ulimit
