@@ -6,7 +6,7 @@ this project.
 The project does satisfy these following requirements:
 * chroot - By setting -p /path/to/lxc
 * exit code / signal forwarding - from lxc-init
-* memory limit - By setting -m <bytes> !! UNTESTED
+* memory limit - By setting -m <bytes> (UNTESTED)
 
 The project does not satisfy these following requirements due to deadline constraint
 * Network Access - the container is given an IP address, but it is not assignable
