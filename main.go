@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-// Config
+// Config is set by command line flags mostly
 type Config struct {
 	Name      string `short:"n" long:"name" description:"Specify the name of the container"`
 	Interface string `short:"i" long:"interface" default:"0.0.0.0"`
@@ -30,11 +30,13 @@ type Config struct {
 	Help        bool    `short:"h" long:"help" description:"Show this help message"`
 }
 
+// errorExit exits with exit_code and prints the failure message
 func errorExit(exit_code int, err error) {
 	fmt.Printf("Error: %v\n", err)
 	os.Exit(exit_code)
 }
 
+// create provisions an lxc container (if necessary)
 func create(conf *Config) *lxc.Container {
 	var c *lxc.Container
 	var err error
@@ -70,7 +72,7 @@ func create(conf *Config) *lxc.Container {
 		}
 	}
 
-	// Not sure if anything gets written to these, but they are created
+	// trace level logs end up here
 	c.SetLogFile("/tmp/" + conf.Name + ".log")
 	c.SetLogLevel(lxc.TRACE)
 
@@ -92,6 +94,7 @@ func exec(c *lxc.Container, conf *Config) {
 	}
 }
 
+// run starts a container
 func run(c *lxc.Container, conf *Config) {
 	cmd := strings.Join(conf.Args.Command, " ")
 	fmt.Printf("Starting container \"%s\"...\n", conf.Name)
@@ -101,6 +104,7 @@ func run(c *lxc.Container, conf *Config) {
 	}
 }
 
+// attach binds the TTY to the running container
 func attach(c *lxc.Container, o *lxc.AttachOptions) {
 	err := c.AttachShell(*o)
 	if err != nil {
@@ -126,6 +130,7 @@ func parseArgs(conf *Config) {
 	}
 }
 
+// validateConfig sets some defaults if the flags are unset
 func validateConfig(conf *Config) {
 	// Hopefully lxc package derives this correctly
 	if conf.LXCPath == "" {
@@ -138,6 +143,7 @@ func validateConfig(conf *Config) {
 	}
 }
 
+// checkTemplateExistence simply stats a template specified
 func checkTemplateExistence(path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		fmt.Printf("Could not stat LXC template \"%s\"\n", path)
@@ -146,8 +152,8 @@ func checkTemplateExistence(path string) {
 	}
 }
 
+// printHelp does what it says
 func printHelp(parser *flags.Parser) {
-	//fmt.Printf("%s\n", unparsed)
 	parser.WriteHelp(os.Stderr)
 	os.Exit(0)
 }
